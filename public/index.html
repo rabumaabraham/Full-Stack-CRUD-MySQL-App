@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management</title>
+</head>
+<body>
+    <h1>User Management System</h1>
+
+    <div>
+        <h2>Create User</h2>
+        <input type="text" id="name" placeholder="Name">
+        <input type="email" id="email" placeholder="Email">
+        <input type="number" id="age" placeholder="Age">
+        <button onclick="createUser()">Create User</button>
+    </div>
+
+    <div>
+        <h2>Users List</h2>
+        <ul id="userList"></ul>
+    </div>
+
+    <script>
+        const apiUrl = 'http://localhost:3000/users';
+
+        // Fetch and display users
+        function getUsers() {
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    const userList = document.getElementById('userList');
+                    userList.innerHTML = '';
+                    data.forEach(user => {
+                        const li = document.createElement('li');
+                        li.textContent = `${user.name} (${user.email}) - ${user.age} years old`;
+                        userList.appendChild(li);
+                    });
+                });
+        }
+
+        // Create user
+        function createUser() {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const age = document.getElementById('age').value;
+
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, email, age })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    getUsers();  // Refresh the user list
+                });
+        }
+
+        // Load users on page load
+        window.onload = getUsers;
+    </script>
+</body>
+</html>
