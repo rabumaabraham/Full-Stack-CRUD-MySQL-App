@@ -3,64 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Management</title>
+    <title>CRUD App</title>
 </head>
 <body>
-    <h1>User Management System</h1>
+    <h1>Users</h1>
 
-    <div>
-        <h2>Create User</h2>
-        <input type="text" id="name" placeholder="Name">
-        <input type="email" id="email" placeholder="Email">
-        <input type="number" id="age" placeholder="Age">
-        <button onclick="createUser()">Create User</button>
-    </div>
+    <form id="createForm">
+        <input type="text" id="name" placeholder="Name" required>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="number" id="age" placeholder="Age" required>
+        <button type="submit">Create User</button>
+    </form>
 
-    <div>
-        <h2>Users List</h2>
-        <ul id="userList"></ul>
-    </div>
+    <ul id="userList"></ul>
 
     <script>
-        const apiUrl = 'http://localhost:3000/users';
+        // Fetch and display users (Read operation)
+        const userList = document.getElementById('userList');
 
-        // Fetch and display users
-        function getUsers() {
-            fetch(apiUrl)
+        function fetchUsers() {
+            fetch('http://localhost:3000/users')
                 .then(response => response.json())
-                .then(data => {
-                    const userList = document.getElementById('userList');
+                .then(users => {
                     userList.innerHTML = '';
-                    data.forEach(user => {
-                        const li = document.createElement('li');
-                        li.textContent = `${user.name} (${user.email}) - ${user.age} years old`;
-                        userList.appendChild(li);
+                    users.forEach(user => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = `${user.name} (${user.email}, Age: ${user.age}) `;
+                        const deleteButton = document.createElement('button');
+                        deleteButton.textContent = 'Delete';
+                        deleteButton.onclick = () => deleteUser(user.id);
+                        listItem.appendChild(deleteButton);
+                        userList.appendChild(listItem);
                     });
                 });
         }
 
-        // Create user
-        function createUser() {
+        // Delete user (Delete operation)
+        function deleteUser(id) {
+            fetch(`http://localhost:3000/users/${id}`, {
+                method: 'DELETE',
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    fetchUsers(); // Refresh the list after deletion
+                });
+        }
+
+        // Create user (Create operation)
+        document.getElementById('createForm').addEventListener('submit', function (e) {
+            e.preventDefault();
             const name = document.getElementById('name').value;
             const email = document.getElementById('email').value;
             const age = document.getElementById('age').value;
 
-            fetch(apiUrl, {
+            fetch('http://localhost:3000/users', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ name, email, age })
             })
                 .then(response => response.json())
                 .then(data => {
-                    alert(data.message);
-                    getUsers();  // Refresh the user list
+                    console.log(data);
+                    fetchUsers(); // Refresh the list after adding a new user
                 });
-        }
+        });
 
-        // Load users on page load
-        window.onload = getUsers;
+        // Initial fetch of users
+        fetchUsers();
     </script>
 </body>
 </html>
